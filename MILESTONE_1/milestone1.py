@@ -1,23 +1,10 @@
-import math
-from sympy import *
 import numpy as np
-from decimal import Decimal
-from collections import *
+import sympy as sp
+import math
+import csv
+from fractions import Fraction
 
-x,y=symbols('x y')
-
-
-def circle_eq(x_1,y_1,r):
-    expr=x**2+y**2
-    val1=expr.subs(x,x_1)
-    val2=val1.subs(y,y_1)
-    #print(val2)
-
-    return val2
-
-def find_distance(p1,p2):
-    dist=sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)
-    return dist
+x1,y1,x2,y2=sp.symbols(('x1','y1','x2','y2'))
 
 with open("Testcase1.txt", 'r') as file:
     lines = file.readlines()
@@ -41,78 +28,33 @@ print("Angle: ",angle)
 
 radius=diameter/2
 slope=math.tan(math.radians(angle))
+start_x=0
+start_y=0
 
-x,y=symbols('x y')
-lhs=slope*x
+constant_1=start_y-(slope*start_x)
 
-print("Line equation:y={0}".format(slope*x))
+eq1=sp.Eq(slope*x1+constant_1-y1,0)
+eq2=sp.Eq((x1-start_x)**2+(y1-start_y)**2-(diameter//2)**2,0)
+coordinates=sp.solve((eq1,eq2),(x1,y1))
 
-x_start=-1*radius
-x_end=radius+1
+print(coordinates)
+x_1=coordinates[0][0]
+y_1=coordinates[0][1]
+x_2=coordinates[1][0]
+y_2=coordinates[1][1]
 
-rng=np.arange(x_start,x_end)
-
-print(rng)
-
-points=[]
-
-for i in range(len(rng)):
-    val=lhs.subs(x,rng[i])
-
-    circle=circle_eq(rng[i],val,radius)
-
-    if(circle<=radius**2):
-        points.append((rng[i],val))
-
-
-print(points)
-
-print(radius**2)
-
-point_distance={}
-
-main_dict=defaultdict(set)
-
-dist_list=set()
-for i in range(len(points)):
-    sub_dict={}
-    for j in range(len(points)):
-        if(points[i]==points[j]):
-            continue
-        dist=find_distance(points[i],points[j])
-
-        main_dict[dist].add(points[i])
-        main_dict[dist].add(points[j])
-
-for key in main_dict.keys():
-    print(len(main_dict[key]))
-    if(len(main_dict[key])>=num_points):
-        final_list=main_dict[key]
-        break
-
-final_list=list(final_list)
+interval_len=diameter/(num_points-1)
 final_points=[]
-for i in range(num_points):
-    final_points.append(final_list[i])
 
-print(final_points)
+final_points.append(coordinates[0])
 
-print("len: ",len(final_points))
+for i in range(num_points-2):
+    eq2=sp.Eq((x1-x_2)**2+(y1-y_2)**2-(diameter-((i+1)*interval_len))**2,0)
+    final_points.append(sp.solve((eq1,eq2),(x1,y1))[0])
 
+final_points.append(coordinates[1])
 
-"""with open('m1_t1.txt', 'w') as file:
-    # Iterate over each tuple in the list
-    for t in final_points:
-        # Write the tuple in the desired format to the file
-        file.write(f"(0)".format(t))
-        #file.write(f"({t[0]}) {t}\n")"""
-
-
-with open('m1_t1.txt', 'w') as f:
-    for point in final_points:
-        f.write(str(point) + '\n')
-
-
-
-
-
+with open('m1_t1.txt','w',newline='') as file1:
+    writer=csv.writer(file1)
+    for points in final_points:
+        writer.writerow(points)
